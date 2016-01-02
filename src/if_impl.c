@@ -298,7 +298,6 @@ int if_release(const char * path, struct fuse_file_info * info) {
 
 
 
-
 struct fuse_operations isofuse_ops = {
   .getattr = if_getattr,
   // AFAIK thre is no symlink in a CD

@@ -47,6 +47,6 @@ if_status * get_status();
  * Extract data 
  */
 int translate_stat(iso9660_stat_t * src,struct stat * dest);
-int translate_fsstat(iso9660_pvd_t * src,struct statvfs * fsstat);
+
 
 #endif /*  __IF_UTILS_H__ */

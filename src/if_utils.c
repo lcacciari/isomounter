@@ -49,22 +49,3 @@ int translate_stat(iso9660_stat_t * src,struct stat * dest) {
   return 0;
 }
 
-int translate_fsstat(iso9660_pvd_t * src,struct statvfs * fsstat) {
-  if_status * status = get_status();
-  
-          /* struct statfs { */
-          /*      __SWORD_TYPE f_type;    /\* type of filesystem (see below) *\/ */
-          /*      __SWORD_TYPE f_bsize;   /\* optimal transfer block size *\/ */
-          /*      fsblkcnt_t   f_blocks;  /\* total data blocks in filesystem *\/ */
-          /*      fsblkcnt_t   f_bfree;   /\* free blocks in fs *\/ */
-          /*      fsblkcnt_t   f_bavail;  /\* free blocks available to */
-          /*                                 unprivileged user *\/ */
-          /*      fsfilcnt_t   f_files;   /\* total file nodes in filesystem *\/ */
-          /*      fsfilcnt_t   f_ffree;   /\* free file nodes in fs *\/ */
-          /*      fsid_t       f_fsid;    /\* filesystem id *\/ */
-          /*      __SWORD_TYPE f_namelen; /\* maximum length of filenames *\/ */
-          /*      __SWORD_TYPE f_frsize;  /\* fragment size (since Linux 2.6) *\/ */
-          /*      __SWORD_TYPE f_spare[5]; */
-          /*  }; */
- 
-}
