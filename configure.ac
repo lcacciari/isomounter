@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([isomounter], [0.0.1], [leo.cacciari@gmail.com])
+AC_INIT([isomounter], [0.1.0], [leo.cacciari@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror -Woverride silent-rules foreign])
 AC_CONFIG_SRCDIR([src/isomounter.c])
 AC_CONFIG_HEADERS([src/config.h])
@@ -30,9 +30,9 @@ AC_TYPE_OFF_T
 
 # Debug support
 AC_MSG_CHECKING(if you want debug support)
-debug_on=yes
+debug_on=no
 AC_ARG_ENABLE(debug,
-	AS_HELP_STRING([--enable-debug],[enable debug support (def=yes)]),
+	AS_HELP_STRING([--enable-debug],[enable debug support (def=no)]),
         debug_on="$enableval")
 AC_MSG_RESULT($debug_on)
 
