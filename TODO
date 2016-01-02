@@ -1,0 +1,20 @@
+
+* add command line arguments handling
+   at a minmum, we should have standard options like --help or --version
+   
+   
+* add "query" modes: a way to have the program give info on already mounted images
+   This will require to write a local mtab file (à la fuseiso) and some command line
+   options. An alternative would be to have a daemon handling all mounts, but this
+   seems to be an overkill
+
+   
+
+* Integrate with graphic mode. This will require some steps:
+- have the program launch a file browser on the mount point when done
+   beware of the fact that the code after the call to fuse_main could be executed
+   twice! Onche by the father process, another when the daemonized process. BTW
+   what that it means for the free done there?
+- write a manager with a cute interface :-P
+
+
