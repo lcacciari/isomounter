@@ -64,28 +64,8 @@ void if_destroy(void * data) {
   // TODO check errors?
   iso9660_close(status->fh);
   // cleanup
-  g_free(status->fh);
+  //  g_free(status->fh);
 }
-
-/** Get file system statistics
- *
- * The 'f_frsize', 'f_favail', 'f_fsid' and 'f_flag' fields are ignored
- *
- * Replaced 'struct statfs' parameter with 'struct statvfs' in
- * version 2.5
- */
-/* not for now
-int if_statfs(const char * path, struct statvfs * p_fsstat) {
-  g_debug("if_statfs called");
-  iso9660_t * iso = ((if_status *) (fuse_get_context()->private_data))->fh;
-  iso9660_pvd_t pvd;
-  bool got = iso9660_ifs_read_pvd(iso,&pvd);
-  if (! got) {
-    return -EIO;
-  }
-  return translate_fsstat(&pvd,p_fsstat);
-}
-*/
 
 
 /** Get file attributes.
@@ -100,7 +80,7 @@ int if_getattr(const char * path, struct stat * p_stat) {
   iso9660_stat_t * info =  iso9660_ifs_stat(iso,path);
   if (info == NULL) {
     // file not found
-    g_warning("file not found: %s",path);
+    g_debug("file not found: %s",path);
     return -ENOENT;
   }
   int result = translate_stat(info,p_stat);
