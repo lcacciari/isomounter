@@ -20,7 +20,9 @@ int main(int argc,char **argv) {
   g_message("call fuse_main");
   int result = fuse_main(argc,argv,&isofuse_ops,status);
   g_message("fuse main returned %d",result);
-  if_status_destroy(status);
+  // not usefull: we ar going to release all memory anyway. But dangerous
+  // if this part of code is executed twice!
+  //if_status_destroy(status);
   return result;
 }
 
