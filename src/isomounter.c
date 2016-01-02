@@ -3,10 +3,11 @@
 
 int main(int argc,char **argv) {
   /*
-   * for now, our command line is very simple:
-   * All switch are for FUSE, we are only interested
-   * is the second to last parameter: the path to the
-   * image file
+   * The new command line:
+   * - preparse mountpoint and image paths (so to handle encoding)
+   * - also preparse fuse options, so that we are aware of what
+   *   is going on
+   * - add default options such as --help
    */
   if ((argc < 3) ||
       (argv[argc - 2][0] == '-') ||
