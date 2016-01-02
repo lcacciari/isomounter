@@ -1,10 +1,6 @@
 #include "if_utils.h"
 #include <errno.h>
-
-/* data structures */
-
-#define CDIMAGE (((if_status *) (fuse_get_context()->private_data))->fh)
-
+#include <string.h>
 
 /**
  * The file system operations:
@@ -201,6 +197,107 @@ int if_releasedir(const char * path, struct fuse_file_info * info) {
   return 0;
 }
 
+/*
+ * File ops
+ */
+/** File open operation
+ *
+ * No creation (O_CREAT, O_EXCL) and by default also no
+ * truncation (O_TRUNC) flags will be passed to open(). If an
+ * application specifies O_TRUNC, fuse first calls truncate()
+ * and then open(). Only if 'atomic_o_trunc' has been
+ * specified and kernel version is 2.6.24 or later, O_TRUNC is
+ * passed on to open.
+ *
+ * Unless the 'default_permissions' mount option is given,
+ * open should check if the operation is permitted for the
+ * given flags. Optionally open may also return an arbitrary
+ * filehandle in the fuse_file_info structure, which will be
+ * passed to all file operations.
+ *
+ * Changed in version 2.2
+ */
+int if_open(const char * path, struct fuse_file_info * info) {
+  iso9660_t * iso = get_status()->fh;
+  iso9660_stat_t * stats = iso9660_ifs_stat(iso,path);  
+  if (stats == NULL) {
+    return - ENOENT;
+  }
+  if (IS_DIRECTORY(stats)) {
+    g_free(stats);
+    return - EISDIR;
+  }
+  info->fh = (intptr_t) stats;
+  return 0;  
+}
+
+/** Read data from an open file
+ *
+ * Read should return exactly the number of bytes requested except
+ * on EOF or error, otherwise the rest of the data will be
+ * substituted with zeroes.	 An exception to this is when the
+ * 'direct_io' mount option is specified, in which case the return
+ * value of the read system call will reflect the return value of
+ * this operation.
+ *
+ * Changed in version 2.2
+ */
+int if_read(const char * path,
+	    char * buf,size_t size, off_t offset,struct fuse_file_info * info) {
+  iso9660_t * iso = get_status()->fh;
+  iso9660_stat_t * stats = (iso9660_stat_t *) (uintptr_t) info->fh;
+  off_t bk_offset = offset / ISO_BLOCKSIZE;
+  off_t off = offset % ISO_BLOCKSIZE; // offset in first bock
+  // calculate how many block we must read
+  off_t bk_size = (size + off + ISO_BLOCKSIZE - 1) / ISO_BLOCKSIZE;
+  size_t bytes_read = 0;
+  for (int block = 0; block < bk_size; block++) {
+    char data[ISO_BLOCKSIZE];
+    const lsn_t lsn = stats->lsn + bk_offset + block;
+    size_t read = iso9660_iso_seek_read(iso,data,lsn,1);
+    if (read != ISO_BLOCKSIZE) {
+      return -EIO;
+    }
+    /* In this block there are at most ISO_BLOCKSIZE - off
+     * of the remaining size - bytes_read bytes to read
+     * (note that off is possibly not zero only on first pass (se below)
+     */
+    size_t remains_to_read = size - bytes_read;
+    size_t good_in_block = ISO_BLOCKSIZE - off;
+    size_t actually_read =
+      remains_to_read < good_in_block ? remains_to_read : good_in_block;
+    //     
+    memcpy(buf + bytes_read,data + off,actually_read);
+    bytes_read += actually_read;
+    // blocks following the first are read from the beginning
+    off = 0;
+  }
+  return bytes_read;
+}
+
+/** Release an open file
+ *
+ * Release is called when there are no more references to an open
+ * file: all file descriptors are closed and all memory mappings
+ * are unmapped.
+ *
+ * For every open() call there will be exactly one release() call
+ * with the same flags and file descriptor.	 It is possible to
+ * have a file opened more than once, in which case only the last
+ * release will mean, that no more reads/writes will happen on the
+ * file.  The return value of release is ignored.
+ *
+ * Changed in version 2.2
+ */
+int if_release(const char * path, struct fuse_file_info * info) {
+  iso9660_stat_t * stats = (iso9660_stat_t *) (uintptr_t) info->fh;
+  g_free(stats);
+  info->fh = 0;
+  return 0;
+}
+
+
+
 
 struct fuse_operations isofuse_ops = {
   .getattr = if_getattr,
@@ -222,14 +319,14 @@ struct fuse_operations isofuse_ops = {
   .truncate = NULL,
   // to here, are left undefined
   .utime = NULL,
-  .open = NULL,
-  .read = NULL,
+  .open = if_open,
+  .read = if_read,
   // read only filesystem: no write allowed
   .write = NULL,
   /** Just a placeholder, don't set */ // huh???
   .statfs = NULL,
   .flush = NULL,
-  .release = NULL,
+  .release = if_release,
   .fsync = NULL,
   
 #ifdef HAVE_SYS_XATTR_H
