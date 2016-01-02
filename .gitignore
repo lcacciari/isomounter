@@ -1,0 +1,33 @@
+/configure
+/config.*
+stamp-h1
+/aclocal.m4
+/depcomp
+/install-sh
+/ltmain.sh
+Makefile
+/autom4te.cache/
+/missing
+/compile
+.deps
+.libs
+*.in
+m4
+doc
+libtool
+test/test_version
+*~
+# configure created
+src/config.h
+
+# executable
+src/cdls
+#object files and the like
+*.o
+*.a
+*.so
+
+
+
+
+
