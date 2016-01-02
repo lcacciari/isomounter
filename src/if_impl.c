@@ -1,4 +1,5 @@
-#include "iso9660fuse.h"
+#include "if_utils.h"
+#include <errno.h>
 
 /* data structures */
 
@@ -35,28 +36,18 @@
  * fuse_context to all file operations and as a parameter to the
  * destroy() method.
  *
- * In entry, the private_data in fuse_conn_info will be the
- * path to the image file. The mehod will return a pointer to
- * a struct isofuse_status_s containing the information or NULL 
- * on failure.
  * TODO check that FUSE handle a NULL return as error.
  */
 void * if_init(struct fuse_conn_info *conn) {
-  if_status * status = NULL;
-  g_trace("if_init called");
-  gchar * path = (gchar *) fuse_get_context()->private_data;
-  g_debug("opening imagefile %s",path);
-  iso9660_t * iso = iso9660_open(p_status->path);
-  if (iso <> NULL) {
+  if_status * status = get_status();
+  g_debug("opening imagefile %s",status->path);
+  status->fh = iso9660_open(status->path);
+  if (status->fh == NULL) {
     // TODO check return value
-    status = (if_status *) g_malloc(sizeof(if_status));
-    status->path = g_strdup(path);
-    status->fh = iso;
-  } else {
-    g_error("Failed to open image at %s",path);
+    g_error("Failed to open image at %s",status->path);
+    return NULL;
   }
-  // TODO handle out fields of fuse_conn_info
-  return p_status;
+  return status;
 }
 
 /**
@@ -68,14 +59,12 @@ void * if_init(struct fuse_conn_info *conn) {
  */
 void if_destroy(void * data) {
   if_status * status = (if_status *) data;
-  g_trace("if_destroy called");
+  g_debug("if_destroy called");
   g_debug("closing image at %s",status->path);
   // TODO check errors?
   iso9660_close(status->fh);
   // cleanup
-  g_free(status->path);
   g_free(status->fh);
-  g_free(status);
 }
 
 /** Get file system statistics
@@ -85,8 +74,9 @@ void if_destroy(void * data) {
  * Replaced 'struct statfs' parameter with 'struct statvfs' in
  * version 2.5
  */
+/* not for now
 int if_statfs(const char * path, struct statvfs * p_fsstat) {
-  g_trace("if_statfs called");
+  g_debug("if_statfs called");
   iso9660_t * iso = ((if_status *) (fuse_get_context()->private_data))->fh;
   iso9660_pvd_t pvd;
   bool got = iso9660_ifs_read_pvd(iso,&pvd);
@@ -95,7 +85,7 @@ int if_statfs(const char * path, struct statvfs * p_fsstat) {
   }
   return translate_fsstat(&pvd,p_fsstat);
 }
-
+*/
 
 
 /** Get file attributes.
@@ -105,10 +95,12 @@ int if_statfs(const char * path, struct statvfs * p_fsstat) {
  * mount option is given.
  */
 int if_getattr(const char * path, struct stat * p_stat) {
-  iso9660_t * iso = ((if_status *) (fuse_get_context()->private_data))->fh;
-  iso9660_stat_t * info =  iso9660_fs_stat(iso,path,0);
+  iso9660_t * iso = get_status()->fh;
+  g_debug("getatr called for %s",path);
+  iso9660_stat_t * info =  iso9660_ifs_stat(iso,path);
   if (info == NULL) {
     // file not found
+    g_warning("file not found: %s",path);
     return -ENOENT;
   }
   int result = translate_stat(info,p_stat);
@@ -132,9 +124,8 @@ int if_getattr(const char * path, struct stat * p_stat) {
  * Introduced in version 2.3
  */
 int if_opendir(const char * path, struct fuse_file_info * info) {
-  iso9660_t * iso = ((if_status *) (fuse_get_context()->private_data))->fh;
-  iso9660_stat_t * stats = iso9660_fs_stat(iso,path,0);
-  
+  iso9660_t * iso = get_status()->fh;
+  iso9660_stat_t * stats = iso9660_ifs_stat(iso,path);  
   if (stats == NULL) {
     return - ENOENT;
   }
@@ -149,7 +140,7 @@ int if_opendir(const char * path, struct fuse_file_info * info) {
   }
   if_dir * data = g_malloc0(sizeof(if_dir));
   if (data == NULL) {
-    g_free(path);
+    g_free(path_copy);
     g_free(stats);
     return -ENOMEM;
   }
@@ -184,11 +175,11 @@ int if_opendir(const char * path, struct fuse_file_info * info) {
  */
 int if_readdir(const char * path, void * buf, fuse_fill_dir_t filler,
 	       off_t offset,struct fuse_file_info * info) {
-  g_trace("if_readdir called");
+  g_debug("if_readdir called");
   CdioList_t * list;
   CdioListNode_t * node;
   int result = 0;
-  iso9660_t * iso = ((if_status *) (fuse_get_context()->private_data))->fh;
+  iso9660_t * iso = get_status()->fh;
   if_dir * data = (if_dir *) (uintptr_t) info->fh;
   list = iso9660_ifs_readdir(iso,data->path);
   if (list == NULL) {
@@ -196,14 +187,14 @@ int if_readdir(const char * path, void * buf, fuse_fill_dir_t filler,
   }
 #ifdef _DIRENT_HAVE_D_TYPE
   // we could use this for retuning the data one at the time
-  off_t offset = 0;
+  off_t off = 0;
 #endif
   _CDIO_LIST_FOREACH(node,list) {
     struct dirent dh;
     iso9660_stat_t * stats = (iso9660_stat_t *) _cdio_list_node_data(node);
     iso9660_name_translate(stats->filename,dh.d_name);
 #ifdef _DIRENT_HAVE_D_TYPE
-    dh.d_off = offset++;
+    dh.d_off = off++;
 #endif
     int rc = filler(buf,dh.d_name,NULL,0);
     if (rc != 0) {
@@ -219,20 +210,20 @@ int if_readdir(const char * path, void * buf, fuse_fill_dir_t filler,
  *
  * Introduced in version 2.3
  */
-int if_releasedir(const char *, struct fuse_file_info *) {
-  g_trace("if_releasedir called");
-  iso9660_t * iso = ((if_status *) (fuse_get_context()->private_data))->fh;
+int if_releasedir(const char * path, struct fuse_file_info * info) {
+  g_debug("if_releasedir called");
+  iso9660_t * iso = get_status()->fh;
   if_dir * data = (if_dir *) (uintptr_t) info->fh;
   // just destroy the user data
   g_free(data->path);
   g_free(data->info);
-  f_free(data);
+  g_free(data);
   return 0;
 }
 
 
 struct fuse_operations isofuse_ops = {
-  .getattr = if_getattr
+  .getattr = if_getattr,
   // AFAIK thre is no symlink in a CD
   .readlink = NULL,
   // no .getdir -- that's deprecated
@@ -256,7 +247,7 @@ struct fuse_operations isofuse_ops = {
   // read only filesystem: no write allowed
   .write = NULL,
   /** Just a placeholder, don't set */ // huh???
-  .statfs = if_statfs,
+  .statfs = NULL,
   .flush = NULL,
   .release = NULL,
   .fsync = NULL,

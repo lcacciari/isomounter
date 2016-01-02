@@ -1,11 +1,11 @@
 
-bin_PROGRAMS=isomount
-isomount_SOURCES=isomount.c iso9660fuse.c
+bin_PROGRAMS=isomounter
+isomounter_SOURCES=isomounter.c if_impl.c if_utils.c
 
-isomount_CFLAGS = $(DEPS_CFLAGS)
-isomount_LDADD = $(DEPS_LIBS)
+isomounter_CFLAGS = $(DEPS_CFLAGS)
+isomounter_LDADD = $(DEPS_LIBS)
 if DEBUG
-isomount_CFLAGS += -g
+isomounter_CFLAGS += -g
 else
-isomount_CFLAGS += -O2
+isomounter_CFLAGS += -O2
 endif

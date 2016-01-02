@@ -1,7 +1,5 @@
-#include <glib.h>
-#include <fuse/fuse.h>
+#include "if_utils.h"
 
-#include "iso9660fuse.h"
 
 int main(int argc,char **argv) {
   /*
@@ -16,12 +14,13 @@ int main(int argc,char **argv) {
     g_error("bad command line");
     return -1;
   }
-  char * pathtoimage = argv[argc - 2];
+  if_status * status = if_status_new(argv[argc - 2]);
   argv[argc - 2] = argv[argc - 1];
   argc = argc - 1;
   g_message("call fuse_main");
-  int result = fuse_main(argc,argv,&isofuse_ops,pathtoimage);
+  int result = fuse_main(argc,argv,&isofuse_ops,status);
   g_message("fuse main returned %d",result);
+  if_status_destroy(status);
   return result;
 }
 

@@ -21,7 +21,7 @@ test/test_version
 src/config.h
 
 # executable
-src/cdls
+src/isomounter
 #object files and the like
 *.o
 *.a
