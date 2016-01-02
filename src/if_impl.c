@@ -34,7 +34,7 @@
  *
  * TODO check that FUSE handle a NULL return as error.
  */
-void * if_init(struct fuse_conn_info *conn) {
+static void * if_init(struct fuse_conn_info *conn) {
   if_status * status = get_status();
   g_debug("opening imagefile %s",status->path);
   status->fh = iso9660_open(status->path);
@@ -53,7 +53,7 @@ void * if_init(struct fuse_conn_info *conn) {
  *
  * Introduced in version 2.3
  */
-void if_destroy(void * data) {
+static void if_destroy(void * data) {
   if_status * status = (if_status *) data;
   g_debug("if_destroy called");
   g_debug("closing image at %s",status->path);
@@ -70,7 +70,7 @@ void if_destroy(void * data) {
  * ignored.	 The 'st_ino' field is ignored except if the 'use_ino'
  * mount option is given.
  */
-int if_getattr(const char * path, struct stat * p_stat) {
+static int if_getattr(const char * path, struct stat * p_stat) {
   iso9660_t * iso = get_status()->fh;
   g_debug("getatr called for %s",path);
   iso9660_stat_t * info =  iso9660_ifs_stat(iso,path);
@@ -99,7 +99,7 @@ int if_getattr(const char * path, struct stat * p_stat) {
  *
  * Introduced in version 2.3
  */
-int if_opendir(const char * path, struct fuse_file_info * info) {
+static int if_opendir(const char * path, struct fuse_file_info * info) {
   iso9660_t * iso = get_status()->fh;
   iso9660_stat_t * stats = iso9660_ifs_stat(iso,path);  
   if (stats == NULL) {
@@ -149,7 +149,7 @@ int if_opendir(const char * path, struct fuse_file_info * info) {
  *
  * Introduced in version 2.3
  */
-int if_readdir(const char * path, void * buf, fuse_fill_dir_t filler,
+static int if_readdir(const char * path, void * buf, fuse_fill_dir_t filler,
 	       off_t offset,struct fuse_file_info * info) {
   g_debug("if_readdir called");
   CdioList_t * list;
@@ -186,7 +186,7 @@ int if_readdir(const char * path, void * buf, fuse_fill_dir_t filler,
  *
  * Introduced in version 2.3
  */
-int if_releasedir(const char * path, struct fuse_file_info * info) {
+static int if_releasedir(const char * path, struct fuse_file_info * info) {
   g_debug("if_releasedir called");
   iso9660_t * iso = get_status()->fh;
   if_dir * data = (if_dir *) (uintptr_t) info->fh;
@@ -217,7 +217,7 @@ int if_releasedir(const char * path, struct fuse_file_info * info) {
  *
  * Changed in version 2.2
  */
-int if_open(const char * path, struct fuse_file_info * info) {
+static int if_open(const char * path, struct fuse_file_info * info) {
   iso9660_t * iso = get_status()->fh;
   iso9660_stat_t * stats = iso9660_ifs_stat(iso,path);  
   if (stats == NULL) {
@@ -242,7 +242,7 @@ int if_open(const char * path, struct fuse_file_info * info) {
  *
  * Changed in version 2.2
  */
-int if_read(const char * path,
+static int if_read(const char * path,
 	    char * buf,size_t size, off_t offset,struct fuse_file_info * info) {
   iso9660_t * iso = get_status()->fh;
   iso9660_stat_t * stats = (iso9660_stat_t *) (uintptr_t) info->fh;
@@ -289,7 +289,7 @@ int if_read(const char * path,
  *
  * Changed in version 2.2
  */
-int if_release(const char * path, struct fuse_file_info * info) {
+static int if_release(const char * path, struct fuse_file_info * info) {
   iso9660_stat_t * stats = (iso9660_stat_t *) (uintptr_t) info->fh;
   g_free(stats);
   info->fh = 0;
