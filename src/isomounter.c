@@ -13,6 +13,17 @@ typedef struct isomounter_config_s {
   gchar * mountpoint;
 } isomounter_config_t;
 
+static void print_config(isomounter_config_t * config) {
+  g_print("debug: %s\n",config->debug ? "yes" : "no");
+  g_print("foreground: %s\n",config->foreground ? "yes" : "no");
+  g_print("single thread: %s\n",config->single_thread ? "yes" : "no");
+  // missing modes
+  g_print("manage mount point: %s\n",config->manage_mp ? "yes" : "no");
+  g_print("base dir is %s\n",config->base_dir);
+  g_print("image path %s\n",config->image_path);
+  g_print("mountpoint %s\n",config->mountpoint);
+}
+  
 #define FIELD_ADDRESS(c,f) (&((c)->f))
 
 static gchar * default_base_dir() {
@@ -46,7 +57,7 @@ static void add_main_entries(GOptionContext * ctx,isomounter_config_t * config) 
   GOptionEntry entries[] = {
     {"manage-mp",'p',G_OPTION_FLAG_NONE,G_OPTION_ARG_NONE,FIELD_ADDRESS(config,manage_mp),"if the mountpoit doesn't exist create it and remove at exit",NULL},
     {"base-dir",0,G_OPTION_FLAG_NONE,G_OPTION_ARG_FILENAME,FIELD_ADDRESS(config,base_dir),"set the directory under which dynamic mountpoints are created","WRITEABLEDIR"},
-    {"",0,G_OPTION_FLAG_HIDDEN,G_OPTION_ARG_FILENAME_ARRAY,"???","!!!"},
+    {"",0,G_OPTION_FLAG_HIDDEN,G_OPTION_ARG_FILENAME_ARRAY,FIELD_ADDRESS(config,arguments),"???","!!!"},
     {NULL}
   };
   g_option_context_add_main_entries(ctx,entries,NULL);
@@ -140,6 +151,7 @@ int main(int argc,char **argv) {
     g_error("bad configuration");
     return(1);
   }
+  print_config(config);
   int fuse_argc = 0;
   char ** fuse_argv;
 
