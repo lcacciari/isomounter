@@ -1,6 +1,6 @@
 #include "config.h"
 #include "if_utils.h"
-#include "mountpoint.h"
+#include "filechecks.h"
 #include <glib/gstdio.h>
 
 int main(int argc,char **argv) {
