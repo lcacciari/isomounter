@@ -23,6 +23,18 @@ static void print_config(isomounter_config_t * config) {
   g_print("image path %s\n",config->image_path);
   g_print("mountpoint %s\n",config->mountpoint);
 }
+
+static gboolean is_writable_directory(const gchar * path) {
+  GStatBuf st;
+  gint rc = g_stat(path,&st);
+  if (rc != 0) return false;
+  if (!S_ISDIR(st.st_mode)) {
+    return false;
+  }
+  rc = g_access(path,W_OK);
+  return (rc == 0);
+}
+
   
 #define FIELD_ADDRESS(c,f) (&((c)->f))
 
@@ -85,8 +97,7 @@ static gboolean check_config(isomounter_config_t * config) {
   }
   // check the basedir is writable
   // should check is acually a dir!
-  int rc = g_access(config->base_dir,W_OK);
-  if (rc != 0) {
+  if (!is_writable_directory(config->base_dir)) {
     g_warning("base directory '%s' doesn't exist or isn't writeable",config->base_dir);
     return false;
   }
@@ -141,22 +152,14 @@ static gboolean prepare_fuse_args(isomounter_config_t * config,gchar *** p_argv,
 }
 
 static gboolean check_mountpoint(gchar * path,gboolean manage) {
-  GStatBuf st;
-  gint rc = g_stat(path,&st);
-  if (rc == 0) {
-    // need to check access
-    if (!S_ISDIR(st.st_mode)) {
-      g_warning("mount point %s is not writeable",path);
-      return false;
-    }
-    rc = g_access(path,W_OK);
-    return (rc == 0);
+  if (is_writable_directory(path)) {
+    return true;
   }
   if (! manage) {
     g_warning("mount point %s does not exist and we weren't asked to create it\n",path);
     return false;
   }
-  rc = g_mkdir(path,0777);
+  int rc = g_mkdir(path,0777);
   if (rc != 0) {
     g_warning("creation of mount point %s failed\n",path);
     return false;
