@@ -4,13 +4,11 @@
 
 int main(int argc,char **argv) {
   GError *error = NULL;
-  g_message("create config");
   im_config_t * config = im_config_new();
-  g_message("build context");
   GOptionContext * ctx = g_option_context_new("- mounting ISO images in userspace");
   g_option_context_add_group(ctx,build_fuse_options(config));
   g_option_context_set_main_group(ctx,build_main_options(config));
-  g_message("parse options");
+  g_debug("parse options");
   gboolean ok = g_option_context_parse(ctx, &argc, &argv, &error);
   if (!ok) {
     g_error("option parsing failed: %s", error->message);
@@ -27,14 +25,11 @@ int main(int argc,char **argv) {
     g_error("mount point %s can not be used",config->mountpoint);
     return 1;
   case MANAGED:
-    g_print("mountpoint %s has been created and will be deleted on umount",config->mountpoint);
     status->mountpoint_managed = TRUE;
     break;
   case UNMANAGED:
     if (config->manage_mp) {
       g_warning("mountpoint %s already exist. It will *not* be deleted on umount",config->mountpoint);
-    } else {
-      g_print("will use mountpoint %s",config->mountpoint);
     }
     status->mountpoint_managed = FALSE;
     break;
@@ -45,12 +40,13 @@ int main(int argc,char **argv) {
   im_config_extract_fuse_args(config,argv[0],&f_argc,&f_argv);
 
   gchar * cl = g_strjoinv(" ",f_argv);
-  g_print("Arguments that will be passed to fuse_main: '%s'\n",cl);
+  g_debug("Arguments that will be passed to fuse_main: '%s'\n",cl);
   g_free(cl);
       
-  g_message("call fuse_main");
+  g_debug("call fuse_main");
+  g_print("%s\n",config->mountpoint);
   int result = fuse_main(f_argc,f_argv,&isofuse_ops,status);
-  g_message("fuse main returned %d",result);
+  g_debug("fuse main returned %d",result);
   // doing cleanup if needed
   if (status->mountpoint_managed) {
       gint rc = g_rmdir(config->mountpoint);
