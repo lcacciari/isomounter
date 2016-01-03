@@ -52,23 +52,12 @@ int main(int argc,char **argv) {
   int result = fuse_main(f_argc,f_argv,&isofuse_ops,status);
   g_message("fuse main returned %d",result);
   // doing cleanup if needed
-  /* If the mountpoint is managed it need to be removed. This should be done
-   * by the forked child (if any).
-   * if either -f or -d where specified, there is no child
-   * otherwhise, if the mount failed the phase was set to ON_ERROR and no chile was created(?)
-   * if a child is created, on termination it will have the phase set to AFTER_UMOUNT
-   */
-  if ((config->debug || config->foreground) /* we never forked */ ||
-      (status->phase != AT_START) /* we are the forked child or no child was forked */) {
-    if (status->mountpoint_managed) {
-      // try to remove the mountpoint
-      g_print("trying to remove mountpoit %s",config->mountpoint);
+  if (status->mountpoint_managed) {
       gint rc = g_rmdir(config->mountpoint);
       if (rc != 0) {
 	g_warning("removal of mountpoint %s failed",config->mountpoint);
       }
-    }
-  }
+  }    
   return result;
 }
 
