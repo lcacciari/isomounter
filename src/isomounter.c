@@ -132,9 +132,11 @@ static gboolean check_config(isomounter_config_t * config) {
  * Builds the arguments to be passed to fuse_main from the given config object.
  * The argv vector is dynamically allocated and is guaranteed to be NULL terminated.
  */
-static gboolean prepare_fuse_args(isomounter_config_t * config,gchar *** p_argv,gint * p_argc) {
+static gboolean prepare_fuse_args(isomounter_config_t * config,const gchar * argv0,
+				  gchar *** p_argv,gint * p_argc) {
   int count = 0;
-  gchar ** argv = (gchar **) g_malloc0(sizeof(gchar *) * 8); // <- max number of options is 7
+  gchar ** argv = (gchar **) g_malloc0(sizeof(gchar *) * 9); // <- max number of options is 7
+  argv[count++] = g_strdup(argv0);
   if (config->debug) {
     argv[count++] = g_strdup("-d");
   }
@@ -144,8 +146,8 @@ static gboolean prepare_fuse_args(isomounter_config_t * config,gchar *** p_argv,
   if (config->single_thread) {
     argv[count++] = g_strdup("-s");
   }
-  // for now do not handle modes
   argv[count++] = g_strdup(config->mountpoint);
+  // for now do not handle modes
   *p_argc = count;
   *p_argv = argv;
   return true;
@@ -202,7 +204,7 @@ int main(int argc,char **argv) {
   int fuse_argc = 0;
   char ** fuse_argv;
   
-  ok = prepare_fuse_args(config,&fuse_argv,&fuse_argc);
+  ok = prepare_fuse_args(config,argv[0],&fuse_argv,&fuse_argc);
   if (!ok) {
     g_error("failed to prepare fuse args");
     return(1);
