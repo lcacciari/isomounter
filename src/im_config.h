@@ -16,24 +16,6 @@ typedef struct im_config_s {
   gchar * mountpoint;
 } im_config_t;
 
-/* usefull macos*/
-#define FIELD_ADDRESS(c,f) (&((c)->f))
-
-#define REPLACE_STRING_FIELD(p_config,field,value) do {\
-    gchar * old = (p_config)->field;                   \
-    (p_config)->field = g_strdup(value);               \
-    g_free(old);                                       \
-  } while(0)
-
-#define APPEND_TO_STRING_FIELD(p_config,field,value) do {\
-    gchar * old = (p_config)->field;                     \
-    if (old == NULL || old[0] == '\0') {                 \
-      (p_config)->field = g_strdup(value);               \
-    } else {                                             \
-      (p_config)->field = g_strjoin(",",(p_config)->field,value,NULL);	\
-    }                                                    \
-    g_free(old);                                         \
-  } while(0)
 
 
 
@@ -57,7 +39,7 @@ GOptionGroup * build_fuse_options(im_config_t * config);
 
 GOptionGroup * build_main_options(im_config_t * config);
 
-gboolean im_config_extract_fuse_args(im_config_t * config,const gchar * argv0,
-				     gint * p_argc,gchar *** p_argv);
+void im_config_extract_fuse_args(im_config_t * config,const gchar * argv0,
+				 gint * p_argc,gchar *** p_argv);
 
 #endif /*__IM_CONFIG_H__*/

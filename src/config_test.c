@@ -20,13 +20,8 @@ int main(int argc,char **argv) {
   gint f_argc = 0;
   gchar ** f_argv = NULL;
 
-  ok = im_config_extract_fuse_args(config,argv[0],&f_argc,&f_argv);
-  if (ok) {
-    gchar * cl = g_strjoinv(" ",f_argv);
-    g_print("Arguments that will be passed to fuse_main: '%s'\n",cl);
-    g_free(cl);
-  } else {
-    g_print("building fuse command line failed\n");
-  }
-	    
+  im_config_extract_fuse_args(config,argv[0],&f_argc,&f_argv);
+  gchar * cl = g_strjoinv(" ",f_argv);
+  g_print("Arguments that will be passed to fuse_main: '%s'\n",cl);
+  g_free(cl);
 }

@@ -9,6 +9,7 @@
 #include <cdio/iso9660.h>
 #include <fuse.h>
 #include <glib.h>
+#include "im_config.h"
 
 
 extern struct fuse_operations isofuse_ops;
@@ -29,16 +30,20 @@ typedef struct if_dir_s {
  * Used to store the status of this fuse instance.
  */
 typedef struct isofuse_status_s {
+  enum {
+    AT_START = 0,
+    AFTER_MOUNT,
+    AFTER_UMOUNT,
+    IN_ERROR
+  } phase;
   gchar     * path;
-  // all files will be appear as belonging to the user belo
-  uid_t owner_uid;
-  gid_t owner_gid;
+  gboolean  mountpoint_managed;
   mode_t default_file_mode;
   mode_t default_dir_mode;
   iso9660_t * fh;
 } if_status;
 
-if_status * if_status_new(const char * path);
+if_status * if_status_new(im_config_t * config);
 void if_status_destroy(if_status * status);
 if_status * get_status();
 

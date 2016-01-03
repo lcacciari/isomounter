@@ -41,8 +41,10 @@ static void * if_init(struct fuse_conn_info *conn) {
   if (status->fh == NULL) {
     // TODO check return value
     g_error("Failed to open image at %s",status->path);
+    status->phase = IN_ERROR;
     return NULL;
   }
+  status->phase = AFTER_MOUNT;
   return status;
 }
 
@@ -59,8 +61,7 @@ static void if_destroy(void * data) {
   g_debug("closing image at %s",status->path);
   // TODO check errors?
   iso9660_close(status->fh);
-  // cleanup
-  //  g_free(status->fh);
+  status->phase = AFTER_UMOUNT;
 }
 
 
