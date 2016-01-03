@@ -65,14 +65,18 @@ static GOptionGroup * build_fuse_options(isomounter_config_t * config) {
   return group;
 }
 
-static void add_main_entries(GOptionContext * ctx,isomounter_config_t * config) {
+static GOptionGroup * build_main_options(isomounter_config_t * config) {
+  GOptionGroup * group = g_option_group_new("main",
+					    "main options",
+					    "Options of isomounter",NULL,NULL);
   GOptionEntry entries[] = {
     {"manage-mp",'p',G_OPTION_FLAG_NONE,G_OPTION_ARG_NONE,FIELD_ADDRESS(config,manage_mp),"if the mountpoit doesn't exist create it and remove at exit",NULL},
     {"base-dir",0,G_OPTION_FLAG_NONE,G_OPTION_ARG_FILENAME,FIELD_ADDRESS(config,base_dir),"set the directory under which dynamic mountpoints are created","WRITEABLEDIR"},
     {"",0,G_OPTION_FLAG_HIDDEN,G_OPTION_ARG_FILENAME_ARRAY,FIELD_ADDRESS(config,arguments),"???","!!!"},
     {NULL}
   };
-  g_option_context_add_main_entries(ctx,entries,NULL);
+  g_option_group_add_entries(group,entries);
+  return group;  
 }
 
 /**
@@ -81,7 +85,7 @@ static void add_main_entries(GOptionContext * ctx,isomounter_config_t * config) 
 static GOptionContext * build_context(isomounter_config_t * config) {
   GOptionContext * ctx = g_option_context_new(" - mount a ISO9660 filename in userspace");
   g_option_context_add_group(ctx,build_fuse_options(config));
-  add_main_entries(ctx,config);
+  g_option_context_set_main_group(ctx,build_main_options(config));
   return ctx;
 }
 
