@@ -3,13 +3,6 @@
 #include <glib/gstdio.h>
 
 int main(int argc,char **argv) {
-  /*
-   * The new command line:
-   * - preparse mountpoint and image paths (so to handle encoding)
-   * - also preparse fuse options, so that we are aware of what
-   *   is going on
-   * - add default options such as --help
-   */
   GError *error = NULL;
   g_message("create config");
   im_config_t * config = im_config_new();
