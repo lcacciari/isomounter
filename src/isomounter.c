@@ -84,6 +84,7 @@ static gboolean check_config(isomounter_config_t * config) {
     g_free(relative);
   }
   // check the basedir is writable
+  // should check is acually a dir!
   int rc = g_access(config->base_dir,W_OK);
   if (rc != 0) {
     g_warning("base directory '%s' doesn't exist or isn't writeable",config->base_dir);
@@ -139,6 +140,30 @@ static gboolean prepare_fuse_args(isomounter_config_t * config,gchar *** p_argv,
   return true;
 }
 
+static gboolean check_mountpoint(gchar * path,gboolean manage) {
+  GStatBuf st;
+  gint rc = g_stat(path,&st);
+  if (rc == 0) {
+    // need to check access
+    if (!S_ISDIR(st.st_mode)) {
+      g_warning("mount point %s is not writeable",path);
+      return false;
+    }
+    rc = g_access(path,W_OK);
+    return (rc == 0);
+  }
+  if (! manage) {
+    g_warning("mount point %s does not exist and we weren't asked to create it\n",path);
+    return false;
+  }
+  rc = g_mkdir(path,0777);
+  if (rc != 0) {
+    g_warning("creation of mount point %s failed\n",path);
+    return false;
+  }
+  return true;
+}
+
 int main(int argc,char **argv) {
   /*
    * The new command line:
@@ -167,6 +192,10 @@ int main(int argc,char **argv) {
     return(1);
   }
   print_config(config);
+  g_message("check mountpoint");
+  ok = check_mountpoint(config->mountpoint,config->manage_mp);
+  if (!ok) return 1;
+
   int fuse_argc = 0;
   char ** fuse_argv;
   
