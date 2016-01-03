@@ -7,8 +7,7 @@ endif
 
 LIBS = $(GLIB_LIBS) $(FUSE_LIBS) $(ISO9660_LIBS)
 
-bin_PROGRAMS=isomounter config_test
+bin_PROGRAMS=isomounter
 isomounter_SOURCES=isomounter.c if_impl.c if_utils.c im_config.c filechecks.c
-config_test_SOURCES=config_test.c im_config.c
 
 
