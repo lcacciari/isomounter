@@ -5,7 +5,7 @@
 int main(int argc,char **argv) {
   GError *error = NULL;
   im_config_t * config = im_config_new();
-  GOptionContext * ctx = g_option_context_new("- mounting ISO images in userspace");
+  GOptionContext * ctx = g_option_context_new("path-to-image [mountpoint]");
   g_option_context_add_group(ctx,build_fuse_options(config));
   g_option_context_set_main_group(ctx,build_main_options(config));
   g_debug("parse options");
