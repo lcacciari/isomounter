@@ -1,3 +1,4 @@
+#include "config.h"
 #include "im_config.h"
 
 /* usefull macos*/

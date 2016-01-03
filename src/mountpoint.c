@@ -1,3 +1,4 @@
+#include "config.h"
 #include "mountpoint.h"
 #include <glib/gstdio.h>
 #include <unistd.h>

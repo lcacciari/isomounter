@@ -1,3 +1,4 @@
+#include "config.h"
 #include "if_utils.h"
 #include <time.h>
 
