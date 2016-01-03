@@ -37,9 +37,7 @@ int translate_stat(iso9660_stat_t * src,struct stat * dest) {
   dest->st_nlink = 1; // ???
   dest->st_uid = ctx->uid;
   dest->st_gid = ctx->gid;
-  dest->st_rdev = 0; // there are no special files
   dest->st_size = src->size; // TODO Check endianity
-  dest->st_blocks = 0; // ????
   time_t ct = mktime(&src->tm);
   // we don't keep track of last access...
   dest->st_atim.tv_sec =

@@ -1,10 +1,6 @@
 #ifndef __IF_UTILS_H__
 #define  __IF_UTILS_H__
 
-#ifndef FUSE_USE_VERSION
-#define FUSE_USE_VERSION 26
-#endif
-
 #include <cdio/cdio.h>
 #include <cdio/iso9660.h>
 #include <fuse.h>

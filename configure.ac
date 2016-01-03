@@ -26,14 +26,16 @@ AC_SUBST([ISO9660_CFLAGS])
 AC_SUBST([GLIB_LIBS])
 AC_SUBST([GLIB_CFLAGS])
 
-
 # Checks for header files.
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL
 AC_TYPE_OFF_T
+AC_TYPE_MODE_T
 
 # Checks for library functions.
+AC_FUNC_MKTIME
+AC_TYPE_SIZE_T
 
 # Debug support
 AC_MSG_CHECKING(if you want debug support)
@@ -48,6 +50,8 @@ if test "$debug_on" = "no"; then
 fi
 
 AM_CONDITIONAL(DEBUG, test "$debug_on" = yes)
+
+AC_DEFINE([FUSE_USE_VERSION],[26],[the FUSE API level])
 
 AC_CONFIG_FILES([
                 Makefile
