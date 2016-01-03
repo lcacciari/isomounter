@@ -20,8 +20,9 @@ test/test_version
 # configure created
 src/config.h
 
-# executable
+# executables
 src/isomounter
+src/config_test
 #object files and the like
 *.o
 *.a
