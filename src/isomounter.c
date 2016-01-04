@@ -13,18 +13,18 @@ int main(int argc,char **argv) {
   gboolean ok = g_option_context_parse(ctx, &argc, &argv, &error);
   if (!ok) {
     g_error("option parsing failed: %s", error->message);
-    return (1);
+    exit (1);
   }
   ok = check_image_file(config->image_path);
   if (!ok) {
     g_error("no image path given");
-    return(1);
+    exit(1);
   }
   if_status * status = if_status_new(config);
   switch (check_mountpoint(config)) {
   case UNAVAILABLE:
     g_error("mount point %s can not be used",config->mountpoint);
-    return 1;
+    exit(1);
   case MANAGED:
     status->mountpoint_managed = TRUE;
     break;
@@ -55,6 +55,6 @@ int main(int argc,char **argv) {
 	g_warning("removal of mountpoint %s failed",config->mountpoint);
       }
   }    
-  return result;
+  exit(result);
 }
 
