@@ -1,4 +1,4 @@
-#include "config.h"
+#include "common.h"
 #include "if_utils.h"
 #include <errno.h>
 #include <string.h>

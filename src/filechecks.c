@@ -1,4 +1,4 @@
-#include "config.h"
+#include "common.h"
 #include "filechecks.h"
 #include <glib/gstdio.h>
 #include <unistd.h>

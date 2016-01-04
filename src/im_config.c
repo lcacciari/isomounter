@@ -1,4 +1,4 @@
-#include "config.h"
+#include "common.h"
 #include "im_config.h"
 #include <stdlib.h>
 
