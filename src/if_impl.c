@@ -1,6 +1,9 @@
 #include "common.h"
 #include "if_utils.h"
+
+#ifdef HAVE_STRING_H
 #include <string.h>
+#endif
 
 /**
  * The file system operations:
