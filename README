@@ -1,6 +1,30 @@
 	isomounter - mount a ISO9660 image file in userspace using fuse
 
+  isomounter is a Linux utility that allows you to mount an ISO9660 file
+  just as if you had it on an acual CD and you put it into your computer's
+  CD reader.
 
+  isomounter leverages on the FUSE infrastructure to allow mounting the
+  image in userspace, thus not neading to be root to do it. It uses
+  the cdio library by Gnu to handle access to the image file.
+
+  The isomounter project born during the end-of-the-year days. I was
+  actually looking for a way to mount a CD image on my xubuntu system
+  and come across a couple of programs doing just that, but none had
+  all the features I was looking for (nor has isomounter, yet, but I'm
+  working on it), so I looked to their code to see if they could be
+  brought to do things as I wanted.
+
+  This brought out some other problems with these progams themselves,
+  which discouraged me until I remember the qualities of the "good
+  programmer", namely:
+  
+               Laziness, Impatience, and Hubris
+	       
+  and I started programming it myself.
+
+  Current version is yet in a very early alpha stage, but wouldn't
+  stay as such for long (fingers crossed).
 
   Copyright (C) 2016 Leo Cacciari
 

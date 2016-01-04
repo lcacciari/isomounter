@@ -1,8 +1,0 @@
-There is some problem with root directory name
-
-if from the dir above the ount point I hit tab it try to complete / ???
-
-manage mountpoint not completed, we need to handle destruction (and we should mark
-somehow that the dir has been created)
-
-Modes still not handled
