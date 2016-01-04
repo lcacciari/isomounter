@@ -1,5 +1,5 @@
-#ifndef __MOUNTPOINT_H__
-#define __MOUNTPOINT_H__
+#ifndef __FILECHECKS_H__
+#define __FILECHECKS_H__
 
 #include "im_config.h"
 #include <glib.h>
@@ -14,4 +14,4 @@ mountpoint_status check_mountpoint(im_config_t * config);
 gboolean check_image_file(gchar * path);
 
 
-#endif /*  __MOUNTPOINT_H__ */
+#endif /*  __FILECHECKS_H__ */

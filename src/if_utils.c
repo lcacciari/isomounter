@@ -1,3 +1,4 @@
+#include "common.h"
 #include "if_utils.h"
 #include <time.h>
 
@@ -8,6 +9,8 @@ if_status * if_status_new(im_config_t * config) {
   if_status * status = g_malloc0(sizeof(if_status));
   if (status != NULL) {
     status->path = g_strdup(config->image_path);
+    status->owner_uid = getuid();
+    status->owner_gid = getgid();
     status->default_file_mode = DEFAULT_FILE_PERMISSIONS | S_IFREG;
     status->default_dir_mode = DEFAULT_DIR_PERMISSIONS | S_IFDIR;
   }
@@ -32,14 +35,12 @@ int translate_stat(iso9660_stat_t * src,struct stat * dest) {
   // dest->st_dev ignored
   // dest->st_ino ignored. Can be useful
   dest->st_mode = IS_DIRECTORY(src) ?
-    status->default_dir_mode & ~ ctx->umask :
-    status->default_file_mode  & ~ ctx->umask;
+    status->default_dir_mode :
+    status->default_file_mode;
   dest->st_nlink = 1; // ???
-  dest->st_uid = ctx->uid;
-  dest->st_gid = ctx->gid;
-  dest->st_rdev = 0; // there are no special files
+  dest->st_uid = status->owner_uid;
+  dest->st_gid = status->owner_gid;
   dest->st_size = src->size; // TODO Check endianity
-  dest->st_blocks = 0; // ????
   time_t ct = mktime(&src->tm);
   // we don't keep track of last access...
   dest->st_atim.tv_sec =
