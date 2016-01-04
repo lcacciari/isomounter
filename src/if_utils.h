@@ -34,6 +34,9 @@ typedef struct isofuse_status_s {
   } phase;
   gchar     * path;
   gboolean  mountpoint_managed;
+  // all files will be appear as belonging to the user below
+  uid_t owner_uid;
+  gid_t owner_gid;
   mode_t default_file_mode;
   mode_t default_dir_mode;
   iso9660_t * fh;
