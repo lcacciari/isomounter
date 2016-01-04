@@ -1,5 +1,6 @@
 #include "config.h"
 #include "im_config.h"
+#include <stdlib.h>
 
 /* usefull macos*/
 #define FIELD_ADDRESS(c,f) (&((c)->f))
@@ -19,6 +20,15 @@
     }                                                    \
     g_free(old);                                         \
   } while(0)
+
+G_GNUC_NORETURN
+gboolean parse_version_option(const gchar * option,
+			      const gchar * value,
+			      gpointer data,
+			      GError **error) {
+  g_print("%s\n",PACKAGE_STRING);
+  exit(0);
+}
 
 gboolean parse_mount_options(const gchar * option,
 			     const gchar * value,
@@ -114,6 +124,7 @@ GOptionGroup * build_main_options(im_config_t * config) {
 					    "main options",
 					    "Options of isomounter",config,NULL);
   GOptionEntry entries[] = {
+    {"version",0,G_OPTION_FLAG_NO_ARG,G_OPTION_ARG_CALLBACK,parse_version_option,"prints the version information and exit",NULL},
     {"manage",'m',G_OPTION_FLAG_NONE,G_OPTION_ARG_NONE,FIELD_ADDRESS(config,manage_mp),"if the mountpoit doesn't exist create it and remove at exit",NULL},
     {"base-dir",0,G_OPTION_FLAG_FILENAME,G_OPTION_ARG_CALLBACK,parse_basedir,"set the directory under which dynamic mountpoints are created","WRITEABLEDIR"},
     {"",0,G_OPTION_FLAG_HIDDEN | G_OPTION_FLAG_FILENAME,G_OPTION_ARG_CALLBACK,parse_arguments,NULL,NULL},
