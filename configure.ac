@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([isomounter], [0.1.3-alpha], [leo.cacciari@gmail.com])
+AC_INIT([isomounter], [0.2.0-alpha], [leo.cacciari@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror -Woverride silent-rules foreign])
 AC_CONFIG_SRCDIR([src/isomounter.c])
 AC_CONFIG_HEADERS([src/config.h])
