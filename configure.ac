@@ -29,6 +29,11 @@ AC_SUBST([GLIB_CFLAGS])
 AC_DEFINE([FUSE_USE_VERSION],[26],[the FUSE API level])
 
 # Checks for header files.
+AC_CHECK_HEADERS([stdlib.h])
+AC_CHECK_HEADERS([unistd.h])
+AC_CHECK_HEADERS([time.h])
+AC_CHECK_HEADERS([errno.h])
+AC_CHECK_HEADERS([string.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL
@@ -38,6 +43,7 @@ AC_TYPE_MODE_T
 # Checks for library functions.
 AC_FUNC_MKTIME
 AC_TYPE_SIZE_T
+AC_TYPE_UID_T
 
 # Debug support
 AC_MSG_CHECKING(if you want debug support)

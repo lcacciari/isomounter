@@ -1,11 +1,12 @@
 #ifndef __IF_UTILS_H__
 #define  __IF_UTILS_H__
 
+#include "im_config.h"
 #include <cdio/cdio.h>
 #include <cdio/iso9660.h>
 #include <fuse.h>
 #include <glib.h>
-#include "im_config.h"
+
 
 
 extern struct fuse_operations isofuse_ops;

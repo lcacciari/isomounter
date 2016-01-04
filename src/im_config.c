@@ -1,6 +1,5 @@
 #include "common.h"
 #include "im_config.h"
-#include <stdlib.h>
 
 /* usefull macos*/
 #define FIELD_ADDRESS(c,f) (&((c)->f))
