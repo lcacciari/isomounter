@@ -5,7 +5,8 @@
 #define DEFAULT_FILE_PERMISSIONS S_IRUSR | S_IRGRP | S_IROTH
 #define DEFAULT_DIR_PERMISSIONS DEFAULT_FILE_PERMISSIONS | S_IXUSR | S_IXGRP | S_IXOTH 
 
-if_status * if_status_new(im_config_t * config) {
+if_status * if_status_new() {
+  const im_config_t * config = im_get_config();
   if_status * status = g_malloc0(sizeof(if_status));
   if (status != NULL) {
     status->path = g_strdup(config->image_path);

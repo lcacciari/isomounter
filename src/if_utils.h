@@ -1,11 +1,11 @@
 #ifndef __IF_UTILS_H__
 #define  __IF_UTILS_H__
 
+#include "common.h"
 #include "im_config.h"
 #include <cdio/cdio.h>
 #include <cdio/iso9660.h>
 #include <fuse.h>
-#include <glib.h>
 
 
 
@@ -43,7 +43,7 @@ typedef struct isofuse_status_s {
   iso9660_t * fh;
 } if_status;
 
-if_status * if_status_new(im_config_t * config);
+if_status * if_status_new();
 void if_status_destroy(if_status * status);
 if_status * get_status();
 
