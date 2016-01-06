@@ -164,10 +164,11 @@ gboolean check_mountpoint(if_status * status,GError ** error) {
   } else {
     if (! _config->dry_run) {
       gint rc = g_mkdir(path,0777);
-      if (rc != 0) {
+      if (rc == 0) {
+	status->mountpoint_managed = TRUE;
+      } else {
 	result = FALSE;
 	g_set_error(error,IM_ERROR_DOMAIN,IM_ERROR_MOUNTPOINT_ACCESS,"failed to create managed mountpoint");
-	status->mountpoint_managed = TRUE;
       }
     }
   }
