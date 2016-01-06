@@ -43,14 +43,23 @@ gboolean parse_base_dir_option(const gchar * option,
 			      const gchar * value,
 			      gpointer data,
 			      GError **error) {
-  gchar * old = _config->base_dir;
+  gchar * path = NULL;
   if (g_path_is_absolute(value)) {
-    _config->base_dir = g_build_filename(value,NULL);
+    path = g_build_filename(value,NULL);
   } else {
-    _config->base_dir =  g_build_filename(g_get_current_dir(),value,NULL);
+    path =  g_build_filename(g_get_current_dir(),value,NULL);
   }
-  g_free(old);
-  return TRUE;
+  gboolean result = TRUE;
+  if (g_file_test(path,G_FILE_TEST_IS_DIR) && (g_access(path,W_OK) == 0)) {
+    gchar * old = _config->base_dir;
+    _config->base_dir = path;
+    g_free(old);
+  } else {
+    g_set_error(error,G_OPTION_ERROR,G_OPTION_ERROR_FAILED,"base-dir must be an existing writable directory");
+    g_free(path);
+    result = FALSE;
+  }
+  return result;
 }
 
 
