@@ -1,10 +1,22 @@
+/*
+ *
+ * Copyright (c) 2016 Leo Cacciari <leo.cacciari@gmail.com>
+ *
+ * This program can be distributed under the terms of the GNU GPL.
+ * See the file COPYING for details.
+ *
+ *
+ */
 #include "common.h"
-#include "if_utils.h"
 #include "im_config.h"
+#include "if_utils.h"
 #include <glib/gstdio.h>
+
+G_DEFINE_QUARK(isomounter-error-quark,im_error);
 
 int main(int argc,char **argv) {
   GError *error = NULL;
+  g_print("started with pid %d\n",getpid());
   g_print("initializing config\n");
   if (!im_init_config(&error)) {
     // memory erro, just exit
@@ -24,8 +36,9 @@ int main(int argc,char **argv) {
     g_error("image file: %s",error->message);
     exit(1);
   }
+  if_status * status = if_status_new();
   g_print("checking mountpoint\n");
-  ok = check_mountpoint(&error);
+  ok = check_mountpoint(status,&error);
   g_print("checking mountpoint done\n");
   if (!ok) {
     g_error("mountpoint: %s",error->message);
@@ -37,7 +50,6 @@ int main(int argc,char **argv) {
     g_error("failed to extract fuse arguments: %s",error->message);
     exit(1);
   }
-  if_status * status = if_status_new();
   
   gint result = 0;
   
@@ -48,6 +60,12 @@ int main(int argc,char **argv) {
     g_print("invoking fuse_main with arguments:\n");
     g_print("\t%s\n",cline);
     g_free(cline);
+  }
+  if (result == 0 && status->mountpoint_managed && ! im_get_config()->dry_run) {
+    result = g_rmdir(im_get_config()->mountpoint);
+    if (result != 0) {
+      g_print("failed to remove mountpoint %s\n",im_get_config()->mountpoint);
+    }
   }
   exit(result);
 }
