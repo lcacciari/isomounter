@@ -130,11 +130,11 @@ gboolean process_options(gint * p_argc,gchar *** p_argv, GError ** error) {
     {"options",'o',G_OPTION_FLAG_NONE,G_OPTION_ARG_STRING_ARRAY,&mops,"mount(1) options, included fuse-related ones","mode"},
     {"single-thread",'s',G_OPTION_FLAG_NONE,G_OPTION_ARG_NONE,FIELD_ADDRESS(_config,single_thread),"use single thread imlementation"},
     {"version",0,G_OPTION_FLAG_NO_ARG,G_OPTION_ARG_CALLBACK,parse_version_option,"prints the version information and exit",NULL},
-    {"",0,G_OPTION_FLAG_FILENAME,G_OPTION_ARG_CALLBACK,parse_arguments,"???","!!!"},
+    {"",0,G_OPTION_FLAG_FILENAME,G_OPTION_ARG_CALLBACK,parse_arguments,"???","iso-image [mountpoint]"},
     {NULL}
   };
   
-  GOptionContext * ctx = g_option_context_new("path-to-image [mountpoint]");
+  GOptionContext * ctx = g_option_context_new("- mount iso-image on mountpoint");
   g_option_context_add_main_entries (ctx,entries,NULL);
   gboolean result = g_option_context_parse(ctx, p_argc, p_argv, error);
   if (result) result = setup_fuse_options(mops,error); 
