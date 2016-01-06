@@ -3,43 +3,33 @@
 /*
  * Routines for configuration of isomounter
  */
+#include "common.h"
 
-#include <glib.h>
 typedef struct im_config_s {
   gboolean debug;
   gboolean foreground;
   gboolean single_thread;
-  gchar * mount_opts;
-  gboolean manage_mp;
-  gchar * base_dir;
-  gchar * image_path;
-  gchar * mountpoint;
+  gchar ** options;
+  gboolean manage;
+  gboolean dry_run;
+  gchar  * base_dir;
+  gchar  * image_path;
+  gchar  * mountpoint;
 } im_config_t;
 
+const im_config_t * im_get_config();
+void im_config_print();
+gboolean im_init_config(GError **error);
+gboolean process_options(gint * p_argc,gchar *** p_argv, GError ** error);
 
-
-
-/*
- * Parsing functions for -o and args.
- * Both assumes that a im_config_ pointer has been passed
- * at group creation
+/**
+ * Returns a freshly allocated NULL-terminated array of strings.
+ * On error, it returns NULL and set error accordingly
  */
+gchar * * im_config_extract_fuse_args(const gchar * argv0,GError ** error);
 
 
-gboolean parse_mount_options(const gchar * option,const gchar * value,gpointer data,GError **error);
-
-gboolean parse_arguments(const gchar * option,const gchar * value,gpointer data,GError **error);
-
-im_config_t * im_config_new();
-
-void im_config_print(im_config_t * config);
-
-/* option groups construction*/
-GOptionGroup * build_fuse_options(im_config_t * config);
-
-GOptionGroup * build_main_options(im_config_t * config);
-
-void im_config_extract_fuse_args(im_config_t * config,const gchar * argv0,
-				 gint * p_argc,gchar *** p_argv);
+gboolean check_mountpoint(GError ** error);
+gboolean check_image_file(GError ** error);
 
 #endif /*__IM_CONFIG_H__*/
