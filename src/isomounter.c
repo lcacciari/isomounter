@@ -5,34 +5,53 @@
 
 int main(int argc,char **argv) {
   GError *error = NULL;
+#ifndef NDEBUG
+  g_print("start with pid %d\n",getpid());
   g_print("initializing config\n");
+#endif
   if (!im_init_config(&error)) {
     // memory erro, just exit
     exit(ENOMEM);
   }
+#ifndef NDEBUG
   g_print("processing options\n");
+#endif
   gboolean ok = process_options(&argc,&argv,&error);
+#ifndef NDEBUG
   g_print("processing options done\n");
+#endif
   if (!ok) {
     g_error("option parsing failed: %s", error->message);
     exit(1);
   }
+#ifndef NDEBUG
   g_print("checking image file\n");
+#endif
   ok = check_image_file(&error);
+#ifndef NDEBUG
   g_print("checking image file done\n");
+#endif
   if (!ok) {
     g_error("image file: %s",error->message);
     exit(1);
   }
+#ifndef NDEBUG
   g_print("checking mountpoint\n");
+#endif
   ok = check_mountpoint(&error);
+#ifndef NDEBUG
   g_print("checking mountpoint done\n");
+#endif
   if (!ok) {
     g_error("mountpoint: %s",error->message);
   }
+#ifndef NDEBUG
   g_print("building fuse options\n");
+#endif
   gchar ** f_argv = im_config_extract_fuse_args(argv[0],&error);
+#ifndef NDEBUG
   g_print("fuse options built\n");
+#endif
   if (f_argv == NULL) {
     g_error("failed to extract fuse arguments: %s",error->message);
     exit(1);
