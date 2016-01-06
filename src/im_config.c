@@ -39,6 +39,20 @@ gboolean parse_version_option(const gchar * option,
   exit(0);
 }
 
+gboolean parse_base_dir_option(const gchar * option,
+			      const gchar * value,
+			      gpointer data,
+			      GError **error) {
+  gchar * old = _config->base_dir;
+  if (g_path_is_absolute(value)) {
+    _config->base_dir = g_build_filename(value,NULL);
+  } else {
+    _config->base_dir =  g_build_filename(g_get_current_dir(),value,NULL);
+  }
+  g_free(old);
+  return TRUE;
+}
+
 
 gboolean parse_arguments(const gchar * option,
 			 const gchar * value,
@@ -91,7 +105,7 @@ gboolean setup_fuse_options(gchar ** mops,GError ** error) {
 gboolean process_options(gint * p_argc,gchar *** p_argv, GError ** error) {
   gchar ** mops = NULL;
   GOptionEntry entries[] = {
-    {"base-dir",0,G_OPTION_FLAG_NONE,G_OPTION_ARG_FILENAME,FIELD_ADDRESS(_config,base_dir),"set the directory under which dynamic mountpoints are created","dir"},
+    {"base-dir",0,G_OPTION_FLAG_FILENAME,G_OPTION_ARG_CALLBACK,parse_base_dir_option,"set the directory under which dynamic mountpoints are created","dir"},
     {"debug",'d',G_OPTION_FLAG_NONE,G_OPTION_ARG_NONE,FIELD_ADDRESS(_config,debug),"do not demonize and print debug messages",NULL},
     {"dry-run",'n',G_OPTION_FLAG_NONE,G_OPTION_ARG_NONE,FIELD_ADDRESS(_config,dry_run),"just print out what the program would do and exit",NULL},
     {"foreground",'f',G_OPTION_FLAG_NONE,G_OPTION_ARG_NONE,FIELD_ADDRESS(_config,foreground),"do not demonize",NULL},
