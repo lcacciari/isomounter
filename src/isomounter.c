@@ -1,3 +1,12 @@
+/*
+ *
+ * Copyright (c) 2016 Leo Cacciari <leo.cacciari@gmail.com>
+ *
+ * This program can be distributed under the terms of the GNU GPL.
+ * See the file COPYING for details.
+ *
+ *
+ */
 #include "common.h"
 #include "if_utils.h"
 #include "im_config.h"

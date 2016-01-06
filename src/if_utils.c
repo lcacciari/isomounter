@@ -1,3 +1,11 @@
+/* if_utils.c - implementation of utilities
+ * 
+ * Copyright (C) 2016 Leo Cacciari <leo.cacciari@gmail.com>
+ *
+ * This file belongs to the isomounter project.
+ * isomounter is free software and is distributed under the terms of the 
+ * GNU GPL. See the file COPYING for details.
+ */
 #include "common.h"
 #include "if_utils.h"
 #include <time.h>

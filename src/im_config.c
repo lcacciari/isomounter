@@ -1,3 +1,11 @@
+/* im_config.c - implementation of configuration operations
+ * 
+ * Copyright (C) 2016 Leo Cacciari <leo.cacciari@gmail.com>
+ *
+ * This file belongs to the isomounter project.
+ * isomounter is free software and is distributed under the terms of the 
+ * GNU GPL. See the file COPYING for details.
+ */
 #include "common.h"
 #include "im_config.h"
 #include <glib/gstdio.h>

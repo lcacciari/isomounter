@@ -1,3 +1,11 @@
+/* if_utils.h - utilities
+ * 
+ * Copyright (C) 2016 Leo Cacciari <leo.cacciari@gmail.com>
+ *
+ * This file belongs to the isomounter project.
+ * isomounter is free software and is distributed under the terms of the 
+ * GNU GPL. See the file COPYING for details.
+ */
 #ifndef __IF_UTILS_H__
 #define  __IF_UTILS_H__
 
@@ -7,16 +15,9 @@
 #include <cdio/iso9660.h>
 #include <fuse.h>
 
-
-
-extern struct fuse_operations isofuse_ops;
-
-
 #define IS_DIRECTORY(stats) ((stats)->type == _STAT_DIR)
 
-/*
- * data structures
- */
+extern struct fuse_operations isofuse_ops;
 
 typedef struct if_dir_s {
   gchar * path;

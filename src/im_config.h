@@ -1,8 +1,13 @@
+/* im_config.h - configuration 
+ * 
+ * Copyright (C) 2016 Leo Cacciari <leo.cacciari@gmail.com>
+ *
+ * This file belongs to the isomounter project.
+ * isomounter is free software and is distributed under the terms of the 
+ * GNU GPL. See the file COPYING for details.
+ */
 #ifndef __IM_CONFIG_H__
 #define __IM_CONFIG_H__
-/*
- * Routines for configuration of isomounter
- */
 #include "common.h"
 
 typedef struct im_config_s {
