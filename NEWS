@@ -1,2 +1,8 @@
+version 0.2.1-alpha 2016-01-06
+- better option handling
+- source reorganization
+- remove script
+- no debug printing if we aen't debugging
+
 version 0.2.0-alpha 2016-01-04
 - first alpha-test level release
