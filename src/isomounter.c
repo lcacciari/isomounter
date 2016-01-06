@@ -68,6 +68,16 @@ int main(int argc,char **argv) {
     g_print("\t%s\n",cline);
     g_free(cline);
   }
+  if (result == 0 && status->mountpoint_managed) {
+    if (! im_get_config()->dry_run) {
+      result = g_rmdir(im_get_config()->mountpoint);
+      if (result != 0) {
+	g_warning("failed to remove managed mountpoint %s",im_get_config()->mountpoint);
+      }
+    } else {
+      g_print("will remove managed mountpoint %s\n",im_get_config()->mountpoint);
+    }
+  }
   exit(result);
 }
 
