@@ -1,159 +1,225 @@
+/* im_config.c - implementation of configuration operations
+ * 
+ * Copyright (C) 2016 Leo Cacciari <leo.cacciari@gmail.com>
+ *
+ * This file belongs to the isomounter project.
+ * isomounter is free software and is distributed under the terms of the 
+ * GNU GPL. See the file COPYING for details.
+ */
 #include "common.h"
 #include "im_config.h"
+#include <glib/gstdio.h>
 
-/* usefull macos*/
-#define FIELD_ADDRESS(c,f) (&((c)->f))
+static im_config_t * _config = NULL;
 
-#define REPLACE_STRING_FIELD(p_config,field,value) do {\
-    gchar * old = (p_config)->field;                   \
-    (p_config)->field = value;                         \
-    g_free(old);                                       \
-  } while(0)
+gboolean im_init_config(GError ** error) {
+  _config = g_try_new0(im_config_t,1);
+  if (_config != NULL) {
+    _config->base_dir = g_build_filename(g_get_home_dir(),DEFAULT_MOUNTPOINT,NULL);
+  }
+  return (_config != NULL);
+}
 
-#define APPEND_TO_STRING_FIELD(p_config,field,value) do {\
-    gchar * old = (p_config)->field;                     \
-    if (old == NULL || old[0] == '\0') {                 \
-      (p_config)->field = g_strdup(value);               \
-    } else {                                             \
-      (p_config)->field = g_strjoin(",",(p_config)->field,value,NULL);	\
-    }                                                    \
-    g_free(old);                                         \
-  } while(0)
+const im_config_t * im_get_config() {
+  return _config;
+}
+
+void im_config_print() {
+  gchar * options = g_strjoinv(",",_config->options);
+  g_print("dry_run: %s\n",_config->dry_run ? "yes" : "no");
+  g_print("debug: %s\n",_config->debug ? "yes" : "no");
+  g_print("foreground: %s\n",_config->foreground ? "yes" : "no");
+  g_print("single thread: %s\n",_config->single_thread ? "yes" : "no");
+  g_print("fuse mount options: %s\n",options);
+  g_print("manage mount point: %s\n",_config->manage ? "yes" : "no");
+  g_print("base dir is %s\n",_config->base_dir);
+  g_print("image path %s\n",_config->image_path);
+  g_print("mountpoint %s\n",_config->mountpoint);
+  g_free(options);
+}
 
 G_GNUC_NORETURN
 gboolean parse_version_option(const gchar * option,
 			      const gchar * value,
 			      gpointer data,
 			      GError **error) {
-  g_print("%s\n",PACKAGE_STRING);
+  g_print("%s version %s\n",PACKAGE_NAME,PACKAGE_VERSION);
   exit(0);
 }
 
-gboolean parse_mount_options(const gchar * option,
-			     const gchar * value,
-			     gpointer data,
-			     GError **error) {
-  im_config_t * config = (im_config_t *) data;
-  APPEND_TO_STRING_FIELD(config,mount_opts,value);
-  return TRUE;
+gboolean parse_base_dir_option(const gchar * option,
+			      const gchar * value,
+			      gpointer data,
+			      GError **error) {
+  gchar * path = NULL;
+  if (g_path_is_absolute(value)) {
+    path = g_build_filename(value,NULL);
+  } else {
+    path =  g_build_filename(g_get_current_dir(),value,NULL);
+  }
+  gboolean result = TRUE;
+  if (g_file_test(path,G_FILE_TEST_IS_DIR) && (g_access(path,W_OK) == 0)) {
+    gchar * old = _config->base_dir;
+    _config->base_dir = path;
+    g_free(old);
+  } else {
+    g_set_error(error,G_OPTION_ERROR,G_OPTION_ERROR_FAILED,"base-dir must be an existing writable directory");
+    g_free(path);
+    result = FALSE;
+  }
+  return result;
 }
+
 
 gboolean parse_arguments(const gchar * option,
 			 const gchar * value,
 			 gpointer data,
 			 GError **error) {
-  //not very nice...
   static gint idx = 0;
-  gboolean result = TRUE;
-  im_config_t * config = (im_config_t *) data;
   gchar * path = NULL;
   if (g_path_is_absolute(value)) {
-    path = g_strdup(value);
+    path = g_build_filename(value,NULL);
   } else {
     path = g_build_filename(g_get_current_dir(),value,NULL);
   }
+  gchar ** target = NULL;
   switch(idx) {
   case 0:
-    REPLACE_STRING_FIELD(config,image_path,path);
+    target = &(_config->image_path);
     break;
   case 1:
-    REPLACE_STRING_FIELD(config,mountpoint,path);
+    target = &(_config->mountpoint);
     break;
   default:
     g_set_error(error,G_OPTION_ERROR,G_OPTION_ERROR_FAILED,"too many arguments");
-    result = FALSE;
+    return FALSE;
   }
+  // for now there is no default, so it's guaranteed to be NULL
+  *target = path;
   idx += 1;
-  return result;
+  return TRUE;
 }
 
-gboolean parse_basedir(const gchar * option,
-		       const gchar * value,
-		       gpointer data,
-		       GError **error) {
-  
-  gboolean result = TRUE;
-  im_config_t * config = (im_config_t *) data;
-  gchar * path = NULL;
-  if (g_path_is_absolute(value)) {
-    path = g_strdup(value);
-  } else {
-    path = g_build_filename(g_get_current_dir(),value,NULL);
+
+/*
+ * Split mops on comas, ensuring that each element of
+ * get_config()->options[] contains just one option
+ * This will make easier to check if some incompatible
+ * option is missing, or if a needed one is missing
+ */
+gboolean setup_fuse_options(gchar ** mops,GError ** error) {
+  if (mops == NULL) {
+    _config->options = g_malloc0(sizeof(gchar *));
+    return TRUE;
   }
-  REPLACE_STRING_FIELD(config,base_dir,path);
-  return result;
+  gchar * joined = g_strjoinv(",",mops);
+  _config->options = g_strsplit(joined,",",-1);
+  g_free(joined);
+  return TRUE;
 }
 
-im_config_t * im_config_new() {
-  im_config_t * config = (im_config_t *) g_malloc0(sizeof(im_config_t));
-  config->base_dir = g_build_filename(g_get_home_dir(),"isomount",NULL);
-  return config;
-}
-
-void im_config_print(im_config_t * config) {
-  g_print("debug: %s\n",config->debug ? "yes" : "no");
-  g_print("foreground: %s\n",config->foreground ? "yes" : "no");
-  g_print("single thread: %s\n",config->single_thread ? "yes" : "no");
-  g_print("fuse mount options: %s\n",config->mount_opts);
-  g_print("manage mount point: %s\n",config->manage_mp ? "yes" : "no");
-  g_print("base dir is %s\n",config->base_dir);
-  g_print("image path %s\n",config->image_path);
-  g_print("mountpoint %s\n",config->mountpoint);
-}
-
-
-GOptionGroup * build_fuse_options(im_config_t * config) {
-  GOptionGroup * group = g_option_group_new("fuse",
-					    "default fuse options",
-					    "The default options to fuse library, with added long options for clarity",
-					    config,NULL);
+#define FIELD_ADDRESS(c,f) (&((c)->f))
+gboolean process_options(gint * p_argc,gchar *** p_argv, GError ** error) {
+  gchar ** mops = NULL;
   GOptionEntry entries[] = {
-    {"foreground",'f',G_OPTION_FLAG_NONE,G_OPTION_ARG_NONE,FIELD_ADDRESS(config,foreground),"do not demonize",NULL},
-    {"debug",'d',G_OPTION_FLAG_NONE,G_OPTION_ARG_NONE,FIELD_ADDRESS(config,debug),"do not demonize and print debug messages",NULL},
-    {"single-thread",'s',G_OPTION_FLAG_NONE,G_OPTION_ARG_NONE,FIELD_ADDRESS(config,single_thread),"use single thread imlementation"},
-    {"mount_opts",'o',G_OPTION_FLAG_NONE,G_OPTION_ARG_CALLBACK,parse_mount_options,"mount(1) options, included fuse-related ones","mode"},
-    {NULL}
-  };
-  g_option_group_add_entries(group,entries);
-  return group;
-}
-
-GOptionGroup * build_main_options(im_config_t * config) {
-  GOptionGroup * group = g_option_group_new("main",
-					    "main options",
-					    "Options of isomounter",config,NULL);
-  GOptionEntry entries[] = {
+    {"base-dir",0,G_OPTION_FLAG_FILENAME,G_OPTION_ARG_CALLBACK,parse_base_dir_option,"set the directory under which dynamic mountpoints are created","dir"},
+    {"debug",'d',G_OPTION_FLAG_NONE,G_OPTION_ARG_NONE,FIELD_ADDRESS(_config,debug),"do not demonize and print debug messages",NULL},
+    {"dry-run",'n',G_OPTION_FLAG_NONE,G_OPTION_ARG_NONE,FIELD_ADDRESS(_config,dry_run),"just print out what the program would do and exit",NULL},
+    {"foreground",'f',G_OPTION_FLAG_NONE,G_OPTION_ARG_NONE,FIELD_ADDRESS(_config,foreground),"do not demonize",NULL},
+    {"manage",'m',G_OPTION_FLAG_NONE,G_OPTION_ARG_NONE,FIELD_ADDRESS(_config,manage),"if the mountpoit doesn't exist create it and remove at exit",NULL},
+    {"options",'o',G_OPTION_FLAG_NONE,G_OPTION_ARG_STRING_ARRAY,&mops,"mount(1) options, included fuse-related ones","mode"},
+    {"single-thread",'s',G_OPTION_FLAG_NONE,G_OPTION_ARG_NONE,FIELD_ADDRESS(_config,single_thread),"use single thread imlementation"},
     {"version",0,G_OPTION_FLAG_NO_ARG,G_OPTION_ARG_CALLBACK,parse_version_option,"prints the version information and exit",NULL},
-    {"manage",'m',G_OPTION_FLAG_NONE,G_OPTION_ARG_NONE,FIELD_ADDRESS(config,manage_mp),"if the mountpoit doesn't exist create it and remove at exit",NULL},
-    {"base-dir",0,G_OPTION_FLAG_FILENAME,G_OPTION_ARG_CALLBACK,parse_basedir,"set the directory under which dynamic mountpoints are created","WRITEABLEDIR"},
-    {"",0,G_OPTION_FLAG_HIDDEN | G_OPTION_FLAG_FILENAME,G_OPTION_ARG_CALLBACK,parse_arguments,NULL,NULL},
+    {"",0,G_OPTION_FLAG_FILENAME,G_OPTION_ARG_CALLBACK,parse_arguments,"???","iso-image [mountpoint]"},
     {NULL}
   };
-  g_option_group_add_entries(group,entries);
-  return group;  
+  
+  GOptionContext * ctx = g_option_context_new("- mount iso-image on mountpoint");
+  g_option_context_add_main_entries (ctx,entries,NULL);
+  gboolean result = g_option_context_parse(ctx, p_argc, p_argv, error);
+  if (result) result = setup_fuse_options(mops,error); 
+  g_option_context_free(ctx);
+  g_free(mops);
+  return result;
 }
 
-void im_config_extract_fuse_args(im_config_t * config,const gchar * argv0,
-				       gint * p_argc,gchar *** p_argv) {
-
-  int count = 0;
-  gchar ** argv = (gchar **) g_malloc0(sizeof(gchar *) * 9); // <- max number of options is 7
-  argv[count++] = g_strdup(argv0);
-  if (config->debug) {
-    argv[count++] = g_strdup("-d");
+gboolean check_mountpoint(if_status * status,GError ** error) {
+  gboolean result = TRUE;
+  if (_config->mountpoint == NULL) {
+    // set to the defaul value before going on
+    gchar * name = g_path_get_basename(_config->image_path);
+    _config->mountpoint = g_build_filename(_config->base_dir,name,NULL);
+    g_free(name);
+  } 
+  const gchar * path = _config->mountpoint;
+  if (g_file_test(path,G_FILE_TEST_IS_DIR) && (g_access(path,W_OK) == 0)) {
+    if (_config->manage) {
+      // do we truly want an error?
+      result = FALSE;
+      g_set_error(error,IM_ERROR_DOMAIN,IM_ERROR_MOUNTPOINT_EXISTS,"unable to manage an existing mountpoint");
+    }
+  } else if (! _config->manage) {
+    result = FALSE;
+    g_set_error(error,IM_ERROR_DOMAIN,IM_ERROR_MOUNTPOINT_ACCESS,"mountpoint is not accessible");
+  } else {
+    if (! _config->dry_run) {
+      gint rc = g_mkdir(path,0777);
+      if (rc == 0) {
+	status->mountpoint_managed = TRUE;
+      } else {
+	result = FALSE;
+	g_set_error(error,IM_ERROR_DOMAIN,IM_ERROR_MOUNTPOINT_ACCESS,"failed to create managed mountpoint");
+      }
+    }
   }
-  if (config->foreground) {
-    argv[count++] = g_strdup("-f");
-  }
-  if (config->single_thread) {
-    argv[count++] = g_strdup("-s");
-  }
-  if ((config->mount_opts != NULL) && (config->mount_opts[0] != '\0')) {
-    argv[count++] = g_strdup("-o");
-    argv[count++] = g_strdup(config->mount_opts);
-  }
-  argv[count++] = g_strdup(config->mountpoint);
-  *p_argc = count;
-  *p_argv = argv;
+  return result;
 }
+
+// check only that exists and is writable. should check is a iso file?
+gboolean check_image_file(GError ** error) {
+  const gchar * path = _config->image_path; 
+  gboolean result = TRUE;
+  if (path == NULL) {
+    result = FALSE;
+    g_set_error(error,IM_ERROR_DOMAIN,IM_ERROR_IMAGE,"no image specified");
+  } else if (! g_file_test(path,G_FILE_TEST_IS_REGULAR) || (g_access(path,R_OK))) {
+    result = FALSE;
+    g_set_error(error,IM_ERROR_DOMAIN,IM_ERROR_IMAGE,"image file isn't accessible");
+  }
+  return result;
+}
+
+gchar ** im_config_extract_fuse_args(const gchar * argv0,GError ** error) {
+  GSList *arg_list = NULL;
+  gint n = 1;
+  arg_list = g_slist_prepend(arg_list,g_strdup(argv0));
+  if (_config->debug) {
+    arg_list = g_slist_prepend(arg_list,g_strdup("-d"));
+    n++;
+  }
+  if (_config->foreground) {
+    arg_list = g_slist_prepend(arg_list,g_strdup("-f"));
+    n++;
+  }
+  if (_config->single_thread) {
+    arg_list = g_slist_prepend(arg_list,g_strdup("-s"));
+    n++;
+  }
+  for (gint idx = 0; _config->options[idx] != NULL; idx++) {
+    arg_list = g_slist_prepend(arg_list,g_strconcat("-o",_config->options[idx],NULL));
+    n++;
+  }
+  arg_list = g_slist_prepend(arg_list,g_strdup(_config->mountpoint));
+  n++;
+
+  gchar ** opts = g_new(gchar *,n + 1);
+  opts[n--] = NULL;
+  for (GSList * slist = arg_list;slist;slist = slist->next) {
+    opts[n--] = slist->data;
+  }
+  g_slist_free(arg_list);
+  return opts;
+}
+
+    
 

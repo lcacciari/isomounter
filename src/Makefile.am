@@ -9,8 +9,7 @@ endif
 LIBS = $(GLIB_LIBS) $(FUSE_LIBS) $(ISO9660_LIBS)
 
 bin_PROGRAMS=isomounter
-dist_bin_SCRIPTS=im_view_wrap.sh
-isomounter_SOURCES=isomounter.c if_impl.c if_utils.c im_config.c filechecks.c \
-                   common.h  filechecks.h  if_utils.h im_config.h
+isomounter_SOURCES=isomounter.c if_impl.c if_utils.c im_config.c \
+                   common.h if_utils.h im_config.h
 
 
