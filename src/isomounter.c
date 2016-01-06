@@ -3,6 +3,8 @@
 #include "im_config.h"
 #include <glib/gstdio.h>
 
+G_DEFINE_QUARK(isomounter-error-quark,im_error);
+
 int main(int argc,char **argv) {
   GError *error = NULL;
   g_print("initializing config\n");
