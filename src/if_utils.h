@@ -10,7 +10,6 @@
 #define  __IF_UTILS_H__
 
 #include "common.h"
-#include "im_config.h"
 #include <cdio/cdio.h>
 #include <cdio/iso9660.h>
 #include <fuse.h>

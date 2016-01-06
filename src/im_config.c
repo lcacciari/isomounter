@@ -143,7 +143,7 @@ gboolean process_options(gint * p_argc,gchar *** p_argv, GError ** error) {
   return result;
 }
 
-gboolean check_mountpoint(GError ** error) {
+gboolean check_mountpoint(if_status * status,GError ** error) {
   gboolean result = TRUE;
   if (_config->mountpoint == NULL) {
     // set to the defaul value before going on
@@ -161,13 +161,14 @@ gboolean check_mountpoint(GError ** error) {
   } else if (! _config->manage) {
     result = FALSE;
     g_set_error(error,IM_ERROR_DOMAIN,IM_ERROR_MOUNTPOINT_ACCESS,"mountpoint is not accessible");
-  } else if (_config->dry_run) {
-    g_print("will create mountpoint %s\n",path);
   } else {
-    gint rc = g_mkdir(path,0777);
-    if (rc != 0) {
-      result = FALSE;
-      g_set_error(error,IM_ERROR_DOMAIN,IM_ERROR_MOUNTPOINT_ACCESS,"failed to create managed mountpoint");
+    if (! _config->dry_run) {
+      gint rc = g_mkdir(path,0777);
+      if (rc != 0) {
+	result = FALSE;
+	g_set_error(error,IM_ERROR_DOMAIN,IM_ERROR_MOUNTPOINT_ACCESS,"failed to create managed mountpoint");
+	status->mountpoint_managed = TRUE;
+      }
     }
   }
   return result;

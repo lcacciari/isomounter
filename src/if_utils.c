@@ -8,6 +8,7 @@
  */
 #include "common.h"
 #include "if_utils.h"
+#include "im_config.h"
 #include <time.h>
 
 #define DEFAULT_FILE_PERMISSIONS S_IRUSR | S_IRGRP | S_IROTH
