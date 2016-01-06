@@ -43,7 +43,7 @@ gboolean parse_version_option(const gchar * option,
 			      const gchar * value,
 			      gpointer data,
 			      GError **error) {
-  g_print("%s\n",PACKAGE_STRING);
+  g_print("%s version %s\n",PACKAGE_NAME,PACKAGE_VERSION);
   exit(0);
 }
 
