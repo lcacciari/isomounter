@@ -1,3 +1,11 @@
+/* im_config.c - implementation of configuration operations
+ * 
+ * Copyright (C) 2016 Leo Cacciari <leo.cacciari@gmail.com>
+ *
+ * This file belongs to the isomounter project.
+ * isomounter is free software and is distributed under the terms of the 
+ * GNU GPL. See the file COPYING for details.
+ */
 #include "common.h"
 #include "im_config.h"
 #include <glib/gstdio.h>
@@ -35,7 +43,7 @@ gboolean parse_version_option(const gchar * option,
 			      const gchar * value,
 			      gpointer data,
 			      GError **error) {
-  g_print("%s\n",PACKAGE_STRING);
+  g_print("%s version %s\n",PACKAGE_NAME,PACKAGE_VERSION);
   exit(0);
 }
 
@@ -122,11 +130,11 @@ gboolean process_options(gint * p_argc,gchar *** p_argv, GError ** error) {
     {"options",'o',G_OPTION_FLAG_NONE,G_OPTION_ARG_STRING_ARRAY,&mops,"mount(1) options, included fuse-related ones","mode"},
     {"single-thread",'s',G_OPTION_FLAG_NONE,G_OPTION_ARG_NONE,FIELD_ADDRESS(_config,single_thread),"use single thread imlementation"},
     {"version",0,G_OPTION_FLAG_NO_ARG,G_OPTION_ARG_CALLBACK,parse_version_option,"prints the version information and exit",NULL},
-    {"",0,G_OPTION_FLAG_FILENAME,G_OPTION_ARG_CALLBACK,parse_arguments,"???","!!!"},
+    {"",0,G_OPTION_FLAG_FILENAME,G_OPTION_ARG_CALLBACK,parse_arguments,"???","iso-image [mountpoint]"},
     {NULL}
   };
   
-  GOptionContext * ctx = g_option_context_new("path-to-image [mountpoint]");
+  GOptionContext * ctx = g_option_context_new("- mount iso-image on mountpoint");
   g_option_context_add_main_entries (ctx,entries,NULL);
   gboolean result = g_option_context_parse(ctx, p_argc, p_argv, error);
   if (result) result = setup_fuse_options(mops,error); 
@@ -135,7 +143,7 @@ gboolean process_options(gint * p_argc,gchar *** p_argv, GError ** error) {
   return result;
 }
 
-gboolean check_mountpoint(GError ** error) {
+gboolean check_mountpoint(if_status * status,GError ** error) {
   gboolean result = TRUE;
   if (_config->mountpoint == NULL) {
     // set to the defaul value before going on
@@ -153,13 +161,14 @@ gboolean check_mountpoint(GError ** error) {
   } else if (! _config->manage) {
     result = FALSE;
     g_set_error(error,IM_ERROR_DOMAIN,IM_ERROR_MOUNTPOINT_ACCESS,"mountpoint is not accessible");
-  } else if (_config->dry_run) {
-    g_print("will create mountpoint %s\n",path);
   } else {
-    gint rc = g_mkdir(path,0777);
-    if (rc != 0) {
-      result = FALSE;
-      g_set_error(error,IM_ERROR_DOMAIN,IM_ERROR_MOUNTPOINT_ACCESS,"failed to create managed mountpoint");
+    if (! _config->dry_run) {
+      gint rc = g_mkdir(path,0777);
+      if (rc != 0) {
+	result = FALSE;
+	g_set_error(error,IM_ERROR_DOMAIN,IM_ERROR_MOUNTPOINT_ACCESS,"failed to create managed mountpoint");
+	status->mountpoint_managed = TRUE;
+      }
     }
   }
   return result;

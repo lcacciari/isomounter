@@ -9,7 +9,7 @@ endif
 LIBS = $(GLIB_LIBS) $(FUSE_LIBS) $(ISO9660_LIBS)
 
 bin_PROGRAMS=isomounter
-isomounter_SOURCES=isomounter.c if_impl.c if_utils.c im_config.c error.c\
+isomounter_SOURCES=isomounter.c if_impl.c if_utils.c im_config.c \
                    common.h if_utils.h im_config.h
 
 

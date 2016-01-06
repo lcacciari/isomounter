@@ -1,9 +1,16 @@
+/* im_config.h - configuration 
+ * 
+ * Copyright (C) 2016 Leo Cacciari <leo.cacciari@gmail.com>
+ *
+ * This file belongs to the isomounter project.
+ * isomounter is free software and is distributed under the terms of the 
+ * GNU GPL. See the file COPYING for details.
+ */
 #ifndef __IM_CONFIG_H__
 #define __IM_CONFIG_H__
-/*
- * Routines for configuration of isomounter
- */
 #include "common.h"
+#include "if_utils.h"
+
 
 typedef struct im_config_s {
   gboolean debug;
@@ -29,7 +36,7 @@ gboolean process_options(gint * p_argc,gchar *** p_argv, GError ** error);
 gchar * * im_config_extract_fuse_args(const gchar * argv0,GError ** error);
 
 
-gboolean check_mountpoint(GError ** error);
+gboolean check_mountpoint(if_status * status,GError ** error);
 gboolean check_image_file(GError ** error);
 
 #endif /*__IM_CONFIG_H__*/

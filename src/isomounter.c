@@ -1,12 +1,23 @@
+/*
+ *
+ * Copyright (c) 2016 Leo Cacciari <leo.cacciari@gmail.com>
+ *
+ * This program can be distributed under the terms of the GNU GPL.
+ * See the file COPYING for details.
+ *
+ *
+ */
 #include "common.h"
-#include "if_utils.h"
 #include "im_config.h"
+#include "if_utils.h"
 #include <glib/gstdio.h>
+
+G_DEFINE_QUARK(isomounter-error-quark,im_error);
 
 int main(int argc,char **argv) {
   GError *error = NULL;
 #ifndef NDEBUG
-  g_print("start with pid %d\n",getpid());
+  g_print("started with pid %d\n",getpid());
   g_print("initializing config\n");
 #endif
   if (!im_init_config(&error)) {
@@ -38,7 +49,9 @@ int main(int argc,char **argv) {
 #ifndef NDEBUG
   g_print("checking mountpoint\n");
 #endif
-  ok = check_mountpoint(&error);
+  if_status * status = if_status_new();
+  g_print("checking mountpoint\n");
+  ok = check_mountpoint(status,&error);
 #ifndef NDEBUG
   g_print("checking mountpoint done\n");
 #endif
@@ -56,11 +69,16 @@ int main(int argc,char **argv) {
     g_error("failed to extract fuse arguments: %s",error->message);
     exit(1);
   }
-  if_status * status = if_status_new();
   
   gint result = 0;
   
   if (! im_get_config()->dry_run) {
+#ifndef NDEBUG
+    g_print("calling fuse_main.\n");
+    g_print("mountpoint %s will%s be removed on exit\n",
+	    im_get_config()->mountpoint,
+	    status->mountpoint_managed ? "" : " not");
+#endif
     result = fuse_main(g_strv_length(f_argv),f_argv,&isofuse_ops,status);
   } else {
     gchar * cline = g_strjoinv(" ",f_argv);
@@ -68,7 +86,7 @@ int main(int argc,char **argv) {
     g_print("\t%s\n",cline);
     g_free(cline);
   }
-  if (result == 0 && status->mountpoint_managed) {
+  if (status->mountpoint_managed) {
     if (! im_get_config()->dry_run) {
       result = g_rmdir(im_get_config()->mountpoint);
       if (result != 0) {
